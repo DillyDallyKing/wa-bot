@@ -81,12 +81,6 @@ function meetsCriteriaToRespond(text: string): boolean {
 
   // checks if it has the baseCriteria
   if (upperCasedText.includes(config.baseCriteria)) {
-    // checks for the text BUSINESS first
-    if (upperCasedText.includes('BUSINESS')) {
-      console.log('met', 'business', false);
-      return false;
-    }
-
     if (upperCasedText.includes('ECONOMY')) {
       console.log('met', 'economy', true);
       return true;
