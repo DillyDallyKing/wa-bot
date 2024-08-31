@@ -1,0 +1,8 @@
+numberOfVacantRooms: 10
+chatGroupName: Matthew Lopez
+baseCriteria: NEW DELAYED
+messageCheckIntervalMs: 1000
+responseText: HIL CAN
+responseLimit: 3
+responseWindowMinutes: 10
+isOptimistic: true
