@@ -128,6 +128,7 @@ async function startWhatsAppBot() {
 
   const processedMessages = new Set<string>();
   const inputSelector = config.inputSelectorElement;
+  const response = config.responseText;
   let responseCount = 0;
   let lastResponseTime = Date.now() - config.responseWindowMinutes;
 
@@ -158,14 +159,29 @@ async function startWhatsAppBot() {
       }
 
       if (responseCount < config.responseLimit) {
+        processedMessages.add(hash);
         // new message
         const requestedRooms = getNumberOfRooms(lastMessage);
         if (requestedRooms !== null) {
-          // Check if there are enough vacant rooms
-          if (config.numberOfVacantRooms >= requestedRooms) {
-            // Respond to the last message
-            const response = config.responseText;
-            processedMessages.add(hash);
+          if (config.numberOfVacantRooms === 0) {
+            console.log('There are no more vacancies. Please reconfigure numberOfVacantRooms field and restart service.');
+            continue; // to skip everything else
+          }
+          if (requestedRooms > config.numberOfVacantRooms) {
+            // respond
+            await page.waitForSelector(inputSelector);
+            await page.type(inputSelector, response);
+            await page.keyboard.press('Enter');
+            // Increment response count and update last response time
+            responseCount++;
+            lastResponseTime = Date.now();
+            // Update vacant rooms in config
+            console.log(`Assigning remaining rooms of ${config.numberOfVacantRooms} to request of ${requestedRooms} @ ${lastResponseTime}. Please reconfigure numberOfVacantRooms field and restart service.`);
+
+            config.numberOfVacantRooms = 0;
+            // Save updated config to file
+            saveConfig();
+          } else {
             // respond
             await page.waitForSelector(inputSelector);
             await page.type(inputSelector, response);
@@ -177,11 +193,9 @@ async function startWhatsAppBot() {
             config.numberOfVacantRooms -= requestedRooms;
             // Save updated config to file
             saveConfig();
-          } else {
-            processedMessages.add(hash);
-            console.log('Insufficient vacant rooms. Not responding.');
           }
         }
+        // do nothing if we cannot tell how many rooms
       } else {
         console.log('Response limit reached. Waiting for the next window...');
       }
