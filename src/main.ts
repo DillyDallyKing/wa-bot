@@ -163,11 +163,6 @@ async function startWhatsAppBot() {
         if (requestedRooms !== null) {
           // Check if there are enough vacant rooms
           if (config.numberOfVacantRooms >= requestedRooms) {
-            // Update vacant rooms in config
-            config.numberOfVacantRooms -= requestedRooms;
-            // Save updated config to file
-            saveConfig();
-
             // Respond to the last message
             const response = config.responseText;
             processedMessages.add(hash);
@@ -178,6 +173,10 @@ async function startWhatsAppBot() {
             // Increment response count and update last response time
             responseCount++;
             lastResponseTime = Date.now();
+            // Update vacant rooms in config
+            config.numberOfVacantRooms -= requestedRooms;
+            // Save updated config to file
+            saveConfig();
           } else {
             processedMessages.add(hash);
             console.log('Insufficient vacant rooms. Not responding.');
