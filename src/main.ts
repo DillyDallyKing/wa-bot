@@ -107,14 +107,6 @@ async function startWhatsAppBot() {
   const page = await browser.newPage();
   await page.goto('https://web.whatsapp.com');
 
-  // Function to select the chat group
-  async function selectChatGroup() {
-    await page.click(`span[title="${config.chatGroupName}"]`);
-    await page.waitForSelector(`span[title="${config.chatGroupName}"]`);
-    await page.click(`span[title="${config.chatGroupName}"]`);
-    console.log(`Opened group chat: ${config.chatGroupName}`);
-  }
-
   // Wait for the QR code to disappear, indicating login
   try {
     await page.waitForSelector('h1', { state: 'visible', timeout: 60000 });
@@ -143,14 +135,6 @@ async function startWhatsAppBot() {
   while (true) {
     // wait for text to appear
     await page.waitForSelector('div.message-in span.selectable-text', { state: 'visible', timeout: 60000 });
-
-    // Check if the current chat group is the specified group
-    const currentGroup = await page.$eval('div._amif span._ao3e', el => el.textContent);
-    if (currentGroup !== config.chatGroupName) {
-      console.log(`Current group (${currentGroup}) is not the specified group (${config.chatGroupName}). Re-selecting...`);
-      await selectChatGroup();
-    }
-
 
     const messages = await page.$$eval('div.message-in span.selectable-text', elements => elements.map(element => element.textContent));
     const lastMessage = messages[messages.length - 1];
