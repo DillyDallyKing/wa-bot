@@ -15,6 +15,7 @@ interface ConfigInterface {
   responseLimit: number,
   responseWindowMinutes: number,
   isOptimistic: boolean,
+  inputSelectorElement: string,
 }
 
 // Resolve the path to config.yml
@@ -41,6 +42,7 @@ function validateConfig(config: any): void {
     responseLimit: 'number',
     responseWindowMinutes: 'number',
     isOptimistic: 'boolean',
+    inputSelectorElement: 'string',
   };
 
   for (const [key, type] of Object.entries(requiredConfig)) {
@@ -131,6 +133,7 @@ async function startWhatsAppBot() {
   await page.click(`span[title="${config.chatGroupName}"]`);
 
   const processedMessages = new Set<string>();
+  const inputSelector = config.inputSelectorElement;
   let responseCount = 0;
   let lastResponseTime = Date.now() - config.responseWindowMinutes;
 
@@ -183,7 +186,6 @@ async function startWhatsAppBot() {
             const response = config.responseText;
             processedMessages.add(hash);
             // respond
-            const inputSelector = 'div._ak1l';
             await page.waitForSelector(inputSelector);
             await page.type(inputSelector, response);
             await page.keyboard.press('Enter');
