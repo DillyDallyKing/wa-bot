@@ -8,8 +8,9 @@ import { chromium } from 'playwright';
 
 interface ConfigInterface {
   numberOfVacantRooms: number,
+  roomTypeText: string,
   chatGroupName: string,
-  baseCriteria: string,
+  messageIdentifier: string,
   messageCheckIntervalMs: number,
   responseText: string,
   responseLimit: number,
@@ -35,8 +36,9 @@ const config = yaml.load(fs.readFileSync(path.resolve(__dirname, 'config.yml'), 
 function validateConfig(config: any): void {
   const requiredConfig = {
     numberOfVacantRooms: 'number',
+    roomTypeText: 'string',
     chatGroupName: 'string',
-    baseCriteria: 'string',
+    messageIdentifier: 'string',
     messageCheckIntervalMs: 'number',
     responseText: 'string',
     responseLimit: 'number',
@@ -68,7 +70,8 @@ function saveConfig() {
 }
 
 function getNumberOfRooms(text: string): number | null {
-  const roomRegex = /NO\. OF ROOMS\s+(\d+)\s*ROOMS?\s*\(\s*ECONOMY\s*\)/i;
+  const roomTypeText = config.roomTypeText.toUpperCase();
+  const roomRegex = new RegExp(`NO\\. OF ROOMS\\s+(\\d+)\\s*ROOMS?\\s*\\(\\s*${roomTypeText}\\s*\\)`, 'i');
   const match = text.match(roomRegex);
   if (match && match[1]) {
     const numberOfRoomsStr = match[1];
@@ -80,15 +83,14 @@ function getNumberOfRooms(text: string): number | null {
 
 function meetsCriteriaToRespond(text: string): boolean {
   const upperCasedText = text.toUpperCase();
+  const roomTypeText = config.roomTypeText.toUpperCase();
 
-  // checks if it has the baseCriteria
-  if (upperCasedText.includes(config.baseCriteria)) {
-    if (upperCasedText.includes('ECONOMY')) {
-      console.log('met', 'economy', true);
+  // checks if it has the messageIdentifier
+  if (upperCasedText.includes(config.messageIdentifier)) {
+    if (upperCasedText.includes(roomTypeText)) {
       return true;
     }
   }
-  console.log('unmet', config.isOptimistic);
   return config.isOptimistic;
 }
 

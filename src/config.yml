@@ -1,6 +1,7 @@
 numberOfVacantRooms: 10
+roomTypeText: economy
 chatGroupName: Matthew Lopez
-baseCriteria: NEW DELAYED
+messageIdentifier: NEW DELAYED
 messageCheckIntervalMs: 1000
 responseText: HIL CAN
 responseLimit: 3
