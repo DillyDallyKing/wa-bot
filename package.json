@@ -22,7 +22,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "package": "pkg . --out-path dist"
+    "package": "pkg . --out-path dist",
+    "start": "ts-node src/main.ts"
   },
   "pkg": {
     "assets": [
