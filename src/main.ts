@@ -169,8 +169,9 @@ async function startWhatsAppBot() {
           }
           if (requestedRooms > config.numberOfVacantRooms) {
             // respond
+            const remainingRoomResponse = `${response} ${config.numberOfVacantRooms}`;
             await page.waitForSelector(inputSelector);
-            await page.type(inputSelector, response);
+            await page.type(inputSelector, remainingRoomResponse);
             await page.keyboard.press('Enter');
             // Increment response count and update last response time
             responseCount++;
