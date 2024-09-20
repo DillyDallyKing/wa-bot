@@ -124,7 +124,7 @@ async function startWhatsAppBot() {
     }
   }
   // Locate the group chat by its name
-  await page.click(`span[title="${config.chatGroupName}"]`);
+  await page.locator(`:text("${config.chatGroupName}")`).click();
 
   const processedMessages = new Set<string>();
   const inputSelector = config.inputSelectorElement;
