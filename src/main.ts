@@ -175,13 +175,14 @@ async function startWhatsAppBot() {
             await page.keyboard.press('Enter');
             // Increment response count and update last response time
             responseCount++;
-            lastResponseTime = Date.now();
+            lastResponseTime = currentTime;
             // Update vacant rooms in config
-            console.log(`Assigning remaining rooms of ${config.numberOfVacantRooms} to request of ${requestedRooms} @ ${lastResponseTime}. Please reconfigure numberOfVacantRooms field and restart service.`);
+            console.log(`Assigning remaining rooms of ${config.numberOfVacantRooms} to request of ${requestedRooms} @ ${new Date(lastResponseTime).toLocaleString()}. Please reconfigure numberOfVacantRooms field and restart service.`);
 
             config.numberOfVacantRooms = 0;
             // Save updated config to file
             saveConfig();
+            continue;
           } else {
             // respond
             await page.waitForSelector(inputSelector);
@@ -189,13 +190,15 @@ async function startWhatsAppBot() {
             await page.keyboard.press('Enter');
             // Increment response count and update last response time
             responseCount++;
-            lastResponseTime = Date.now();
+            lastResponseTime = currentTime;
             // Update vacant rooms in config
             config.numberOfVacantRooms -= requestedRooms;
             // Save updated config to file
             saveConfig();
+            continue;
           }
         }
+        console.log('Did nothing because failed to obtain number of rooms');
         // do nothing if we cannot tell how many rooms
       } else {
         console.log('Response limit reached. Waiting for the next window...');
