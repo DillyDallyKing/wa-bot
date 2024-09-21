@@ -57,6 +57,32 @@ function validateConfig(config: any): void {
   }
 }
 
+/*
+Logging Feature
+ */
+
+// Define the log file path (you can customize this)
+const logFilePath = path.join(__dirname, 'logs.txt');
+
+// Create a writable stream that appends to the log file
+const logFileStream = fs.createWriteStream(logFilePath, { flags: 'a' });  // 'a' stands for append mode
+
+// Function to log to both console and file
+function logToFile(...messages: any[]): void {
+  const timestamp = new Date().toLocaleString(); // Get a timestamp for each log
+  const formattedMessage = `[${timestamp}] ${messages.join(' ')}\n`; // Format the message with a timestamp
+
+  // Log to the console
+  console.log(...messages);  // Keeps default console behavior
+
+  // Write the log message to the file
+  try {
+    logFileStream.write(formattedMessage);
+  } catch (e) {
+    console.log(e);
+  }
+}
+
 // Validate the loaded config
 validateConfig(config);
 
@@ -112,15 +138,15 @@ async function startWhatsAppBot() {
     await page.waitForSelector('h1', { state: 'visible', timeout: 60000 });
     const h1Text = await page.$eval('h1', element => element.textContent?.trim());
     if (h1Text === 'Download WhatsApp for Mac') {
-      console.log('Logged in successfully.');
+      logToFile('Logged in successfully.');
     }
     // await page.waitForSelector('h1[text()="Download WhatsApp for Mac"]', { timeout: 60000 });
   } catch (e) {
-    console.log('Please scan the QR code to log in.');
+    logToFile('Please scan the QR code to log in.');
     await page.waitForSelector('h1', { state: 'visible', timeout: 60000 });
     const h1Text = await page.$eval('h1', element => element.textContent?.trim());
     if (h1Text === 'Download WhatsApp for Mac') {
-      console.log('Logged in successfully after scanning QR code.');
+      logToFile('Logged in successfully after scanning QR code.');
     }
   }
   // Locate the group chat by its name
@@ -164,7 +190,7 @@ async function startWhatsAppBot() {
         const requestedRooms = getNumberOfRooms(lastMessage);
         if (requestedRooms !== null) {
           if (config.numberOfVacantRooms === 0) {
-            console.log('There are no more vacancies. Please reconfigure numberOfVacantRooms field and restart service.');
+            logToFile('There are no more vacancies. Please reconfigure numberOfVacantRooms field and restart service.');
             continue; // to skip everything else
           }
           if (requestedRooms > config.numberOfVacantRooms) {
@@ -177,7 +203,7 @@ async function startWhatsAppBot() {
             responseCount++;
             lastResponseTime = currentTime;
             // Update vacant rooms in config
-            console.log(`Assigning remaining rooms of ${config.numberOfVacantRooms} to request of ${requestedRooms} @ ${new Date(lastResponseTime).toLocaleString()}. Please reconfigure numberOfVacantRooms field and restart service.`);
+            logToFile(`Assigning remaining rooms of ${config.numberOfVacantRooms} to request of ${requestedRooms} @ ${new Date(lastResponseTime).toLocaleString()}. Please reconfigure numberOfVacantRooms field and restart service.`);
 
             config.numberOfVacantRooms = 0;
             // Save updated config to file
@@ -195,13 +221,14 @@ async function startWhatsAppBot() {
             config.numberOfVacantRooms -= requestedRooms;
             // Save updated config to file
             saveConfig();
+            logToFile(`Responded to request of ${requestedRooms} @ ${new Date(lastResponseTime).toLocaleString()}. ${config.numberOfVacantRooms} rooms remaining.`)
             continue;
           }
         }
-        console.log('Did nothing because failed to obtain number of rooms');
+        logToFile('Did nothing because failed to obtain number of rooms');
         // do nothing if we cannot tell how many rooms
       } else {
-        console.log('Response limit reached. Waiting for the next window...');
+        logToFile('Response limit reached. Waiting for the next window...');
       }
     }
     // Wait for new messages
@@ -210,4 +237,7 @@ async function startWhatsAppBot() {
 
 }
 
-startWhatsAppBot().catch(console.error);
+startWhatsAppBot().catch((e) => {
+  logToFile(e);
+  console.error(e);
+});
