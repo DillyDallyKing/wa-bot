@@ -95,10 +95,48 @@ function saveConfig() {
   fs.writeFileSync(path.resolve(__dirname, 'config.yml'), yaml.dump(config), 'utf8');
 }
 
+function processRooms(inputText: string, roomType: string): number {
+  // Step 1: Break the input text into an array of lines
+  const linesArray = inputText.split(/\r?\n/).filter(line => line.trim() !== '');
+
+  // Step 2: Filter out lines containing the word "ROOM" or "ROOMS"
+  const roomLines = linesArray.filter(line => /ROOMS?/.test(line));
+
+  let totalRooms = 0;
+  const roomTypeUpper = roomType.toUpperCase();
+  let foundRoomType = false;
+
+  for (let line of roomLines) {
+    const upperCaseLine = line.toUpperCase();
+
+    // If the supplied roomType is found in the line, extract the room count and break the loop
+    if (upperCaseLine.includes(roomTypeUpper)) {
+      const match = line.match(/(\d+)\s*ROOMS?/);
+      if (match) {
+        totalRooms += parseInt(match[1], 10);
+        foundRoomType = true;
+      }
+      break; // Break out of the loop once the roomType is found and processed
+    }
+  }
+
+  // Step 3: If roomType is not found, assume the first occurrence of "ROOM" is the required number of rooms
+  if (!foundRoomType && roomLines.length > 0) {
+    const match = roomLines[1].match(/(\d+)\s*ROOMS?/);
+    if (match) {
+      totalRooms += parseInt(match[1], 10);
+    }
+  }
+
+  return totalRooms;
+}
+
+
 function getNumberOfRooms(text: string): number | null {
   const roomTypeText = config.roomTypeText.toUpperCase();
-  const roomRegex = new RegExp(`NO\\. OF ROOMS\\s+(\\d+)\\s*ROOMS?\\s*\\(\\s*${roomTypeText}\\s*\\)`, 'i');
+  const roomRegex = new RegExp(`NO\\. OF ROOMS\\s+(\\d+)\\s*ROOMS?\\s*(\\(\\s*${roomTypeText || '.*?'}\\s*\\))?`, 'i');
   const match = text.match(roomRegex);
+  console.log(match);
   if (match && match[1]) {
     const numberOfRoomsStr = match[1];
     const numberOfRooms = parseInt(numberOfRoomsStr, 10);
@@ -187,15 +225,15 @@ async function startWhatsAppBot() {
       if (responseCount < config.responseLimit) {
         processedMessages.add(hash);
         // new message
-        const requestedRooms = getNumberOfRooms(lastMessage);
-        if (requestedRooms !== null) {
+        const requestedRooms = processRooms(lastMessage, config.roomTypeText);
+        if (requestedRooms !== 0) {
           if (config.numberOfVacantRooms === 0) {
             logToFile('There are no more vacancies. Please reconfigure numberOfVacantRooms field and restart service.');
             continue; // to skip everything else
           }
           if (requestedRooms > config.numberOfVacantRooms) {
             // respond
-            const remainingRoomResponse = `${response} ${config.numberOfVacantRooms}`;
+            const remainingRoomResponse = `${response} ${config.numberOfVacantRooms} ROOMS`;
             await page.waitForSelector(inputSelector);
             await page.type(inputSelector, remainingRoomResponse);
             await page.keyboard.press('Enter');
@@ -225,7 +263,7 @@ async function startWhatsAppBot() {
             continue;
           }
         }
-        logToFile('Did nothing because failed to obtain number of rooms');
+        // logToFile('Did nothing because failed to obtain number of rooms');
         // do nothing if we cannot tell how many rooms
       } else {
         logToFile('Response limit reached. Waiting for the next window...');
