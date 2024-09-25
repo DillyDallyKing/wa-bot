@@ -20,17 +20,17 @@ interface ConfigInterface {
 }
 
 // Resolve the path to config.yml
-const config = yaml.load(fs.readFileSync(path.resolve(__dirname, 'config.yml'), 'utf8')) as ConfigInterface; // mac
-// const configPath = path.resolve(process.execPath, '../config.yml'); // windows
+// const config = yaml.load(fs.readFileSync(path.resolve(__dirname, 'config.yml'), 'utf8')) as ConfigInterface; // mac
+const configPath = path.resolve(process.execPath, '../config.yml'); // windows
 //
 // // Load the YAML configuration file
-// let config: ConfigInterface;
-// try {
-//   config = yaml.load(fs.readFileSync(configPath, 'utf8')) as ConfigInterface;
-// } catch (err) {
-//   console.error(`Failed to load config file at ${configPath}:`, err);
-//   process.exit(1);
-// }
+let config: ConfigInterface;
+try {
+  config = yaml.load(fs.readFileSync(configPath, 'utf8')) as ConfigInterface;
+} catch (err) {
+  console.error(`Failed to load config file at ${configPath}:`, err);
+  process.exit(1);
+}
 
 // Function to validate config
 function validateConfig(config: any): void {
@@ -62,7 +62,8 @@ Logging Feature
  */
 
 // Define the log file path (you can customize this)
-const logFilePath = path.join(__dirname, 'logs.txt');
+// const logFilePath = path.join(__dirname, 'logs.txt'); // mac
+const logFilePath = path.resolve(process.execPath, '../logs.yml'); // windows
 
 // Create a writable stream that appends to the log file
 const logFileStream = fs.createWriteStream(logFilePath, { flags: 'a' });  // 'a' stands for append mode
@@ -87,13 +88,13 @@ function logToFile(...messages: any[]): void {
 validateConfig(config);
 
 // Function to save the updated config to config.yml
-// function saveConfig() { // windows
-//   fs.writeFileSync(configPath, yaml.dump(config), 'utf8');
-// }
-
-function saveConfig() {
-  fs.writeFileSync(path.resolve(__dirname, 'config.yml'), yaml.dump(config), 'utf8');
+function saveConfig() { // windows
+  fs.writeFileSync(configPath, yaml.dump(config), 'utf8');
 }
+//
+// function saveConfig() {
+//   fs.writeFileSync(path.resolve(__dirname, 'config.yml'), yaml.dump(config), 'utf8');
+// }
 
 function processRooms(inputText: string, roomType: string): number {
   // Step 1: Break the input text into an array of lines
