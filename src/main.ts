@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 import * as path from 'path';
 import { chromium } from 'playwright';
+import { processRooms } from './processRooms';
 
 interface ConfigInterface {
   numberOfVacantRooms: number,
@@ -96,55 +97,6 @@ function saveConfig() { // windows
 //   fs.writeFileSync(path.resolve(__dirname, 'config.yml'), yaml.dump(config), 'utf8');
 // }
 
-function processRooms(inputText: string, roomType: string): number {
-  // Step 1: Break the input text into an array of lines
-  const linesArray = inputText.split(/\r?\n/).filter(line => line.trim() !== '');
-
-  // Step 2: Filter out lines containing the word "ROOM" or "ROOMS"
-  const roomLines = linesArray.filter(line => /ROOMS?/.test(line));
-
-  let totalRooms = 0;
-  const roomTypeUpper = roomType.toUpperCase();
-  let foundRoomType = false;
-
-  for (let line of roomLines) {
-    const upperCaseLine = line.toUpperCase();
-
-    // If the supplied roomType is found in the line, extract the room count and break the loop
-    if (upperCaseLine.includes(roomTypeUpper)) {
-      const match = line.match(/(\d+)\s*ROOMS?/);
-      if (match) {
-        totalRooms += parseInt(match[1], 10);
-        foundRoomType = true;
-      }
-      break; // Break out of the loop once the roomType is found and processed
-    }
-  }
-
-  // Step 3: If roomType is not found, assume the first occurrence of "ROOM" is the required number of rooms
-  if (!foundRoomType && roomLines.length > 0) {
-    const match = roomLines[1].match(/(\d+)\s*ROOMS?/);
-    if (match) {
-      totalRooms += parseInt(match[1], 10);
-    }
-  }
-
-  return totalRooms;
-}
-
-
-function getNumberOfRooms(text: string): number | null {
-  const roomTypeText = config.roomTypeText.toUpperCase();
-  const roomRegex = new RegExp(`NO\\. OF ROOMS\\s+(\\d+)\\s*ROOMS?\\s*(\\(\\s*${roomTypeText || '.*?'}\\s*\\))?`, 'i');
-  const match = text.match(roomRegex);
-  console.log(match);
-  if (match && match[1]) {
-    const numberOfRoomsStr = match[1];
-    const numberOfRooms = parseInt(numberOfRoomsStr, 10);
-    return numberOfRooms;
-  }
-  return null;
-}
 
 function meetsCriteriaToRespond(text: string): boolean {
   const upperCasedText = text.toUpperCase();
