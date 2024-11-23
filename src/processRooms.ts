@@ -1,6 +1,9 @@
 export function processRooms(inputText: string, roomType: string): number {
   // Step 1: Break the input text into an array of lines
-  const linesArray = inputText.split(/\r?\n/).filter(line => line.trim() !== '');
+  const linesArray = inputText
+    .toUpperCase()
+    .split(/\r?\n/)
+    .filter(line => line.trim() !== '');
 
   // Step 2: Filter out lines containing the word "ROOM" or "ROOMS"
   const roomLines = linesArray.filter(line => /ROOMS?/.test(line));
@@ -8,7 +11,6 @@ export function processRooms(inputText: string, roomType: string): number {
   let totalRooms = 0;
   const roomTypeUpper = roomType.toUpperCase();
   let foundRoomType = false;
-
   for (let line of roomLines) {
     const upperCaseLine = line.toUpperCase();
 

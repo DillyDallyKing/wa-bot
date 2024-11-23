@@ -1,10 +1,11 @@
-numberOfVacantRooms: 10
+numberOfVacantRooms: 0
 roomTypeText: economy
-chatGroupName: Matthew Lopez
+chatGroupName: test
 messageIdentifier: NEW DELAYED
-messageCheckIntervalMs: 1000
+messageCheckIntervalMs: 100
 responseText: HIL CAN
 responseLimit: 3
 responseWindowMinutes: 10
 isOptimistic: true
 inputSelectorElement: div._ak1r
+allowPartialFulfilment: true

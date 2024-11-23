@@ -189,4 +189,20 @@ describe('processRooms', () => {
     expect(processRooms(message, 'ECONOMY')).toBe(10);
   });
 
+  it('Message has lower characters', () => {
+    const message = `
+      Hi All,
+      NEW DELAYED SQ ARR
+      
+      SQ27/SEA/28OCT/ETA 1814HRS
+      
+      NO. OF ROOMS
+      
+        5 ROOMs
+      
+      DEPARTURE: SQ504/AMD/29OCT/STD 1840HRS
+    `;
+    expect(processRooms(message, 'ECONOMY')).toBe(5);
+  });
+
 });

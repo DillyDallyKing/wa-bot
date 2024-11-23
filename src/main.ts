@@ -18,6 +18,7 @@ interface ConfigInterface {
   responseWindowMinutes: number,
   isOptimistic: boolean,
   inputSelectorElement: string,
+  allowPartialFulfilment: boolean,
 }
 
 // Resolve the path to config.yml
@@ -46,6 +47,7 @@ function validateConfig(config: any): void {
     responseWindowMinutes: 'number',
     isOptimistic: 'boolean',
     inputSelectorElement: 'string',
+    allowPartialFulfilment: 'boolean',
   };
 
   for (const [key, type] of Object.entries(requiredConfig)) {
@@ -183,6 +185,12 @@ async function startWhatsAppBot() {
             logToFile('There are no more vacancies. Please reconfigure numberOfVacantRooms field and restart service.');
             continue; // to skip everything else
           }
+          // Checks if allowPartialFulfilment  is false if it's false then we check the number of requestedRooms vs numberOfVacantRooms
+          if (!config.allowPartialFulfilment && requestedRooms > config.numberOfVacantRooms) {
+            logToFile(`allowPartialFulfilment: ${config.allowPartialFulfilment} and R: ${requestedRooms} > V: ${config.numberOfVacantRooms}`);
+            continue;
+          }
+
           if (requestedRooms > config.numberOfVacantRooms) {
             // respond
             const remainingRoomResponse = `${response} ${config.numberOfVacantRooms} ROOMS`;
