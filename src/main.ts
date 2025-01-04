@@ -1,6 +1,7 @@
 // src/main.ts
 
 import * as crypto from 'crypto';
+import * as os from 'os';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 import * as path from 'path';
@@ -21,18 +22,30 @@ interface ConfigInterface {
   allowPartialFulfilment: boolean,
 }
 
-// Resolve the path to config.yml
-const config = yaml.load(fs.readFileSync(path.resolve(__dirname, 'config.yml'), 'utf8')) as ConfigInterface; // mac
-// const configPath = path.resolve(process.execPath, '../config.yml'); // windows
-//
-// // Load the YAML configuration file
-// let config: ConfigInterface;
-// try {
-//   config = yaml.load(fs.readFileSync(configPath, 'utf8')) as ConfigInterface;
-// } catch (err) {
-//   console.error(`Failed to load config file at ${configPath}:`, err);
-//   process.exit(1);
-// }
+// Determine the appropriate file path based on the operating system
+const isWindows = os.platform() === 'win32';
+const configPath = isWindows
+  ? path.resolve(process.execPath, '../config.yml') // Windows path
+  : path.resolve(__dirname, 'config.yml'); // Mac path
+
+// Load the YAML configuration file
+let config: ConfigInterface;
+try {
+  config = yaml.load(fs.readFileSync(configPath, 'utf8')) as ConfigInterface;
+} catch (err) {
+  console.error(`Failed to load config file at ${configPath}:`, err);
+  process.exit(1);
+}
+
+// Function to save the updated config to the correct path
+function saveConfig(): void {
+  const savePath = isWindows
+    ? path.resolve(process.execPath, '../config.yml') // Windows save path
+    : path.resolve(__dirname, 'config.yml'); // Mac save path
+
+  fs.writeFileSync(savePath, yaml.dump(config), 'utf8');
+}
+
 
 // Function to validate config
 function validateConfig(config: any): void {
@@ -65,7 +78,15 @@ Logging Feature
  */
 
 // Define the log file path (you can customize this)
-const logFilePath = path.join(__dirname, 'logs.txt');
+const logFilePath = isWindows
+  ? path.resolve(process.execPath, '../logs/app.txt') // Windows path
+  : path.resolve(__dirname, 'logs/app.txt'); // Mac path
+
+// Ensure the log file directory exists
+const logDir = path.dirname(logFilePath);
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir, { recursive: true }); // Create the directory if it doesn't exist
+}
 
 // Create a writable stream that appends to the log file
 const logFileStream = fs.createWriteStream(logFilePath, { flags: 'a' });  // 'a' stands for append mode
@@ -88,15 +109,6 @@ function logToFile(...messages: any[]): void {
 
 // Validate the loaded config
 validateConfig(config);
-
-// Function to save the updated config to config.yml
-// function saveConfig() { // windows
-//   fs.writeFileSync(configPath, yaml.dump(config), 'utf8');
-// }
-
-function saveConfig() {
-  fs.writeFileSync(path.resolve(__dirname, 'config.yml'), yaml.dump(config), 'utf8');
-}
 
 
 function meetsCriteriaToRespond(text: string): boolean {
